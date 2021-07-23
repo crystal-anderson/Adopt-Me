@@ -1,33 +1,37 @@
-import { React, useState, useEffect } from "react";
-import Pet from "./Pet";
+import { React, useEffect, useState } from "react";
+import Results from "./Results";
+import useBreedList from "./useBreedList";
 
-const ANIMALS = ["cat", "bird", "dog", "crocodile", "snake"];
+const ANIMALS = ["cat", "bird", "dog", "rabbit", "reptile"];
 
 const SearchParams = () => {
   const [location, setLocation] = useState("");
   const [animal, setAnimal] = useState("");
   const [breed, setBreed] = useState("");
   const [pets, setPets] = useState([]);
-  const breeds = [];
+  const breeds = useBreedList(animal);
 
   useEffect(() => {
     requestPets();
-  }, []); //eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function requestPets() {
-    const res = await fetch(
+    const response = await fetch(
       `http://pets-v2.dev-apis.com/pets?animal=${animal}&location=${location}&breed=${breed}`
     );
-    const json = await res.json();
-
-    console.log(json);
+    const json = await response.json();
 
     setPets(json.pets);
   }
 
   return (
     <div className="search-params">
-      <form>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          requestPets();
+        }}
+      >
         <label htmlFor="location">
           Location
           <input
@@ -63,9 +67,9 @@ const SearchParams = () => {
             onChange={(event) => setBreed(event.target.value)}
             onBlur={(event) => setBreed(event.target.value)}
           >
-            <option />
+            <option value=""></option>
             {breeds.map((breed) => (
-              <option key={breed} value={breed}>
+              <option value={breed} key={breed}>
                 {breed}
               </option>
             ))}
@@ -74,14 +78,7 @@ const SearchParams = () => {
 
         <button>Submit</button>
       </form>
-      {pets.map((pet) => (
-        <Pet
-          name={pet.name}
-          animal={pet.animal}
-          breed={pet.breed}
-          key={pet.id}
-        />
-      ))}
+      <Results pets={pets} />
     </div>
   );
 };
